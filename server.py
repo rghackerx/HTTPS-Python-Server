@@ -26,14 +26,12 @@ def startServer(host, port):
     server_address = (host, port)
     httpd = http.server.HTTPServer(server_address, http.server.SimpleHTTPRequestHandler)
 
-    # Secure the server with SSL
-    httpd.socket = ssl.wrap_socket(
-        httpd.socket,
-        server_side=True,
-        certfile=thisScriptPath + "cert.pem",
-        keyfile=thisScriptPath + "key.pem",
-        ssl_version=ssl.PROTOCOL_TLS_SERVER  # Secure TLS version
-    )
+    # Create SSL context and load certificate
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    context.load_cert_chain(certfile=thisScriptPath + "cert.pem", keyfile=thisScriptPath + "key.pem")
+
+    # Wrap the socket
+    httpd.socket = context.wrap_socket(httpd.socket, server_side=True)
 
     print(f"🚀 File Server started at https://{host}:{port}")
     httpd.serve_forever()
@@ -42,8 +40,7 @@ def startServer(host, port):
 def main():
     try:
         generate_selfsigned_cert()
-        # Use the specified IP and port
-        startServer("IP", 5555) #change you IP
+        startServer("10.105.117.21", 5555)  # Replace with your IP
     except KeyboardInterrupt:
         print("\nFile Server Stopped!")
 
